@@ -29,16 +29,18 @@ CREATE TABLE IF NOT EXISTS api_keys (
 -- ── Interactions ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS interactions (
   id                  INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  user_id             VARCHAR(100)    NOT NULL COMMENT 'ID of the user on the remote client application',
   interaction_type    VARCHAR(100)    NOT NULL,
   company_name        VARCHAR(150)    NOT NULL,
   contact_person      VARCHAR(150)    NOT NULL,
   interaction_details TEXT            NOT NULL,
   interaction_time    DATETIME        NOT NULL,
-  api_key_id          INT UNSIGNED             DEFAULT NULL COMMENT 'Which client created this record',
+  api_key_id          INT UNSIGNED             DEFAULT NULL COMMENT 'Which client device created this record',
   created_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
                                       ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
+  KEY idx_user_id      (user_id),
   KEY idx_company      (company_name),
   KEY idx_type         (interaction_type),
   KEY idx_time         (interaction_time),
@@ -47,3 +49,13 @@ CREATE TABLE IF NOT EXISTS interactions (
     FOREIGN KEY (api_key_id) REFERENCES api_keys (id)
     ON DELETE SET NULL
 ) ENGINE=InnoDB;
+
+-- ── Migration (existing installations only) ───────────────────
+--  If you already have the interactions table, run this instead
+--  of the full CREATE TABLE above:
+--
+--  ALTER TABLE interactions
+--    ADD COLUMN user_id VARCHAR(100) NOT NULL DEFAULT ''
+--      COMMENT 'ID of the user on the remote client application'
+--      AFTER id,
+--    ADD KEY idx_user_id (user_id);

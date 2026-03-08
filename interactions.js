@@ -22,6 +22,7 @@ function parseDateTime(value) {
 
 router.post('/', async (req, res) => {
   const {
+    user_id,
     interaction_type,
     company_name,
     contact_person,
@@ -30,6 +31,7 @@ router.post('/', async (req, res) => {
   } = req.body;
 
   // Validate required fields
+  if (!user_id)             return validationError(res, 'user_id is required.');
   if (!interaction_type)    return validationError(res, 'interaction_type is required.');
   if (!company_name)        return validationError(res, 'company_name is required.');
   if (!contact_person)      return validationError(res, 'contact_person is required.');
@@ -42,9 +44,9 @@ router.post('/', async (req, res) => {
   try {
     const [result] = await db.execute(
       `INSERT INTO interactions
-         (interaction_type, company_name, contact_person, interaction_details, interaction_time, api_key_id)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [interaction_type, company_name, contact_person, interaction_details, dt, req.apiKey.id]
+         (user_id, interaction_type, company_name, contact_person, interaction_details, interaction_time, api_key_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [user_id, interaction_type, company_name, contact_person, interaction_details, dt, req.apiKey.id]
     );
 
     return res.status(201).json({
@@ -60,6 +62,7 @@ router.post('/', async (req, res) => {
 // ── GET /interactions  –  Retrieve interactions (with optional filters) ───────
 //
 //  Query params (all optional):
+//    user_id           – exact match
 //    company_name      – exact match
 //    interaction_type  – exact match
 //    contact_person    – exact match
@@ -70,6 +73,7 @@ router.post('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
   const {
+    user_id,
     company_name,
     interaction_type,
     contact_person,
@@ -82,6 +86,10 @@ router.get('/', async (req, res) => {
   const conditions = [];
   const params     = [];
 
+  if (user_id) {
+    conditions.push('user_id = ?');
+    params.push(user_id);
+  }
   if (company_name) {
     conditions.push('company_name = ?');
     params.push(company_name);
@@ -123,7 +131,7 @@ router.get('/', async (req, res) => {
     // Actual data
     const [rows] = await db.execute(
       `SELECT
-         id, interaction_type, company_name, contact_person,
+         id, user_id, interaction_type, company_name, contact_person,
          interaction_details, interaction_time, created_at, updated_at
        FROM interactions
        ${where}
@@ -152,7 +160,7 @@ router.get('/:id', async (req, res) => {
 
   try {
     const [rows] = await db.execute(
-      `SELECT id, interaction_type, company_name, contact_person,
+      `SELECT id, user_id, interaction_type, company_name, contact_person,
               interaction_details, interaction_time, created_at, updated_at
        FROM interactions WHERE id = ? LIMIT 1`,
       [id]
@@ -175,7 +183,7 @@ router.put('/:id', async (req, res) => {
   const id = parseInt(req.params.id);
   if (!id) return validationError(res, 'Invalid id.');
 
-  const allowed = ['interaction_type','company_name','contact_person','interaction_details','interaction_time'];
+  const allowed = ['user_id','interaction_type','company_name','contact_person','interaction_details','interaction_time'];
   const updates = [];
   const params  = [];
 
