@@ -83,6 +83,7 @@ X-API-Key: <key>
 Content-Type: application/json
 
 {
+  "user_id":             "usr_a1b2c3d4",
   "interaction_type":    "Meeting",
   "company_name":        "Acme Corp",
   "contact_person":      "Jane Smith",
@@ -109,6 +110,7 @@ Optional query parameters:
 
 | Param              | Description                           |
 |--------------------|---------------------------------------|
+| `user_id`          | Filter by exact user ID               |
 | `company_name`     | Filter by exact company name          |
 | `interaction_type` | Filter by exact type                  |
 | `contact_person`   | Filter by exact contact name          |
@@ -131,6 +133,7 @@ GET /interactions?company_name=Acme+Corp&from=2024-01-01T00:00:00Z&limit=20
   "data": [
     {
       "id": 42,
+      "user_id":             "usr_a1b2c3d4",
       "interaction_type":    "Meeting",
       "company_name":        "Acme Corp",
       "contact_person":      "Jane Smith",
